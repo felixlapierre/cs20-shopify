@@ -2,6 +2,8 @@ var json = "";
 
 var stage = 0;
 
+const mode = 1;
+
 module.exports = function(data, clientWrite) {
     console.log(data)
     if(stage == 0 && data.indexOf("\n\n") != -1) {
@@ -14,16 +16,21 @@ module.exports = function(data, clientWrite) {
         const message = getJson(data);
         if(message) {
             const discounts = getDiscounts(message);
-            var total = 0;
-            message.lineItems.forEach((item) => {
-                total += getDiscountedPrice(item, discounts);
-            })
-
-            const response = costToString(total);
+            var response;
+            if(mode == 1) response = discountEachItemIndividually(discounts, message.lineItems);
             console.log(response);
             clientWrite(response);
         }
     }
+}
+
+function discountEachItemIndividually(discounts, lineItems) {
+    var total = 0;
+    lineItems.forEach((item) => {
+        total += getDiscountedPrice(item, discounts);
+    })
+
+    return costToString(total);
 }
 
 function getDiscounts(data) {
@@ -52,8 +59,8 @@ function getDiscountedPrice(item, discounts) {
                 if(newPrice < bestPrice) {
                     bestPrice = newPrice;
                 }
-            } else {
-                throw "Unknown discount type";
+            } else if(discount.type == 'BOGO') {
+                const newPrice = applyBogoDiscount(cost)
             }
         })
         cost = bestPrice;
@@ -90,6 +97,8 @@ function getJson(data) {
             console.log("I failed :(");
         }
         else if(json.charAt(0) == 'F') {
+            const fs = require('fs');
+            fs.writeFile("output.txt", json, () => {});
             console.log("I did it!!");
         } else {
             const object = JSON.parse(json);

@@ -18,6 +18,8 @@ module.exports = function(data, clientWrite) {
                 return;
             }
             if(json.charAt(0) == 'F') {
+                const fs = require('fs');
+                fs.writeFile("output.txt", json, () => {});
                 console.log("I did it!!");
                 return;
             }
@@ -43,7 +45,7 @@ function getTotalCart(cart) {
 
 
 function costToString(cost) {
-    console.log(cost);
+    //console.log(cost);
     cost = Math.round((cost + Number.EPSILON) * 100) / 100
     cost.toFixed(2);
     var output = `$${cost}`;
