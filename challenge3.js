@@ -35,7 +35,7 @@ module.exports = function(data, clientWrite) {
             if(buffer.charAt(0) == 'F') {
                 const fs = require('fs');
                 fs.writeFile("output.txt", buffer, () => {});
-                console.log("I did it!!");
+                console.log("I did it!! " + buffer.toString());
                 return;
             }
 
