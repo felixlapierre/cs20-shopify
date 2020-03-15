@@ -48,38 +48,53 @@ function getDiscounts(data) {
 }
 
 function getDiscountedPrice(item, discounts) {
-    var cost = getCostSingle(item);
+    var cost = getCostAll(item);
     const discountList = discounts[item.category];
 
     if(discountList) {
         var bestPrice = cost;
         discountList.forEach((discount) => {
+            var newPrice;
             if(discount.type == "%") {
-                const newPrice = applyPercentDiscount(cost, discount.amount);
-                if(newPrice < bestPrice) {
-                    bestPrice = newPrice;
-                }
+                newPrice = applyPercentDiscount(item, discount.amount);
+                newPrice = newPrice * item.quantity;
             } else if(discount.type == 'BOGO') {
-                const newPrice = applyBogoDiscount(cost)
+                newPrice = applyBogoDiscount(item)
+            } else if(discount.type == '$') {
+                newPrice = applyDollarDiscount(item, discount.amount);
+            }
+            if(newPrice < bestPrice) {
+                bestPrice = newPrice;
             }
         })
         cost = bestPrice;
     }
-    return cost * item.quantity;
+    return cost;
 }
 
-function applyPercentDiscount(price, amount) {
+function applyPercentDiscount(item, amount) {
+    price = getCostSingle(item);
     const amountNum = Number.parseInt(amount.substring(0, amount.length - 1));
     price = roundTwoDecimals(price * (100 - amountNum) / 100.0);
     return price;
 }
 
-function applyBogoDiscount(price, amount) {
-
+function applyBogoDiscount(item) {
+    var price = getCostSingle(item);
+    var amount = item.quantity / 2;
+    if(item.quantity % 2 == 1) {
+        amount += 1;
+    }
+    return price * amount;
 }
 
-function applyDollarDiscount(price, amount) {
-
+function applyDollarDiscount(item, amount) {
+    var price = getCostSingle(item);
+    price -= Number.parseFloat(amount.substring(1));
+    if(price < 0) {
+        price = 0;
+    }
+    return price * item.quantity;
 }
 
 function getCostSingle(item) {
@@ -87,7 +102,7 @@ function getCostSingle(item) {
 }
 
 function getCostAll(item) {
-    return item.quantity * Number.parseFloat(item.price.substring(1));
+    return item.quantity * roundTwoDecimals(Number.parseFloat(item.price.substring(1)));
 }
 
 function getJson(data) {
